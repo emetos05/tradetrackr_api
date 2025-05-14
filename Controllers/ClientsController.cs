@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,8 @@ namespace tradetrackr.api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Produces("application/json")]
+    [Authorize]
     public class ClientsController : ControllerBase
     {
         private readonly TradeTrackrDbContext _context;
@@ -21,6 +24,10 @@ namespace tradetrackr.api.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Retrieves all clients from the database.
+        /// </summary>
+        /// <returns></returns>
         // GET: api/Clients
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Client>>> GetClients()
