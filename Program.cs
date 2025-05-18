@@ -59,13 +59,13 @@ builder.Services.AddAuthentication(options =>
     .AddJwtBearer("Bearer", options =>
     {
         options.Authority = "https://tradetrackr.ca.auth0.com/";
-        options.Audience = "https://localhost:44395/";
+        options.Audience = "https://tradetrackr/api";
         //options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         //{
         //    ValidateIssuer = true,
         //    ValidIssuer = "https://tradetrackr.ca.auth0.com/",
         //    ValidateAudience = true,
-        //    ValidAudience = "https://localhost:44395/",
+        //    ValidAudience = "https://tradetrackr/api",
         //    ValidateLifetime = true
         //};
     });
