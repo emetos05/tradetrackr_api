@@ -12,6 +12,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<TradeTrackrDbContext>(options =>
     options.UseNpgsql(builder.Configuration["TradetrackrDb:ConnectionStrings"]));
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOriginsPolicy",
+        builder => builder.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader());
+});
+
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -59,7 +67,8 @@ builder.Services.AddAuthentication(options =>
     .AddJwtBearer("Bearer", options =>
     {
         options.Authority = "https://tradetrackr.ca.auth0.com/";
-        options.Audience = "https://tradetrackr/api";
+        options.Audience = "https://localhost:44395/api";
+        //options.Audience = "https://tradetrackr/api";
         //options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         //{
         //    ValidateIssuer = true,
@@ -80,6 +89,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowAllOriginsPolicy");
 
 app.UseHttpsRedirection();  
 
