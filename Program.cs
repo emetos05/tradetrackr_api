@@ -35,7 +35,7 @@ builder.Services.AddSwaggerGen(options =>
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
-        Scheme = "Bearer",
+        Scheme = "bearer",
         BearerFormat = "JWT",
         Description = "Enter your access token below without the 'Bearer' prefix"
     });
@@ -51,7 +51,7 @@ builder.Services.AddSwaggerGen(options =>
                    Id = "Bearer"
                }
            },
-           new string[] {}
+           new List<string>()
         }
     });
 
