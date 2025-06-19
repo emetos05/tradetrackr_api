@@ -29,8 +29,11 @@ namespace tradetrackr.api.Controllers
         /// <summary>
         /// Retrieves all jobs for the logged in user.
         /// </summary>
-        /// <returns></returns>
-        // GET: api/Jobs
+        /// <remarks>
+        /// Returns a list of all jobs where the associated client belongs to the current user.
+        /// </remarks>
+        /// <response code="200">Returns the list of jobs</response>
+        /// <response code="401">Unauthorized</response>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Job>>> GetJobs()
         {
@@ -45,8 +48,13 @@ namespace tradetrackr.api.Controllers
         /// <summary>
         /// Retrieves a specific job by ID for the logged in user.
         /// </summary>
-        /// <returns></returns>
-        // GET: api/Jobs/5
+        /// <param name="id">The ID of the job to retrieve.</param>
+        /// <remarks>
+        /// Returns the job if it exists and belongs to the current user.
+        /// </remarks>
+        /// <response code="200">Returns the requested job</response>
+        /// <response code="404">Job not found</response>
+        /// <response code="401">Unauthorized</response>
         [HttpGet("{id}")]
         public async Task<ActionResult<Job>> GetJob(Guid id)
         {
@@ -67,8 +75,15 @@ namespace tradetrackr.api.Controllers
         /// <summary>
         /// Updates an existing job for the logged in user.
         /// </summary>
-        /// <returns></returns>
-        // PUT: api/Jobs/5
+        /// <param name="id">The ID of the job to update.</param>
+        /// <param name="job">The updated job object.</param>
+        /// <remarks>
+        /// Only updates the job if it exists and belongs to the current user.
+        /// </remarks>
+        /// <response code="204">Job updated successfully</response>
+        /// <response code="400">Bad request (ID mismatch or invalid data)</response>
+        /// <response code="404">Job not found</response>
+        /// <response code="401">Unauthorized</response>
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateJob(Guid id, Job job)
         {
@@ -119,8 +134,13 @@ namespace tradetrackr.api.Controllers
         /// <summary>
         /// Creates a new job for the logged in user.
         /// </summary>
-        /// <returns></returns>
-        // POST: api/Jobs
+        /// <param name="job">The job object to create.</param>
+        /// <remarks>
+        /// The client associated with the job must belong to the current user.
+        /// </remarks>
+        /// <response code="201">Job created successfully</response>
+        /// <response code="400">Client does not exist or does not belong to the current user</response>
+        /// <response code="401">Unauthorized</response>
         [HttpPost]
         public async Task<ActionResult<Job>> CreateJob(Job job)
         {
@@ -142,8 +162,13 @@ namespace tradetrackr.api.Controllers
         /// <summary>
         /// Deletes a specific job by ID for the logged in user.
         /// </summary>
-        /// <returns></returns>
-        // DELETE: api/Jobs/5
+        /// <param name="id">The ID of the job to delete.</param>
+        /// <remarks>
+        /// Only deletes the job if it exists and belongs to the current user.
+        /// </remarks>
+        /// <response code="204">Job deleted successfully</response>
+        /// <response code="404">Job not found</response>
+        /// <response code="401">Unauthorized</response>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteJob(Guid id)
         {

@@ -19,7 +19,7 @@ namespace tradetrackr.api.Controllers
     {
         private readonly TradeTrackrDbContext _context;
 
-        public ClientsController(TradeTrackrDbContext context )
+        public ClientsController(TradeTrackrDbContext context)
         {
             _context = context;
         }
@@ -38,29 +38,37 @@ namespace tradetrackr.api.Controllers
         /// <summary>
         /// Retrieves all clients for the logged in user.
         /// </summary>
-        /// <returns></returns>
-        // GET: api/Clients
+        /// <remarks>
+        /// Returns a list of all clients associated with the authenticated user.
+        /// </remarks>
+        /// <response code="200">Returns the list of clients</response>
+        /// <response code="401">If the user is not authenticated</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<IEnumerable<Client>>> GetClients()
         {
-            // Optionally filter by the current user if needed
             var userId = GetCurrentUserId();
-            //var userId = "google-oauth2|116105830163052709919"; // For testing purposes, replace with actual user ID retrieval logic
-
-            return await _context.Clients.Where(c => c.UserId == userId).ToListAsync();           
+            return await _context.Clients.Where(c => c.UserId == userId).ToListAsync();
         }
-                
+
         /// <summary>
         /// Retrieves a specific client by ID for the logged in user.
         /// </summary>
-        /// <returns></returns>
-        // GET: api/Clients/5
+        /// <param name="id">The ID of the client to retrieve.</param>
+        /// <remarks>
+        /// Returns the client with the specified ID if it belongs to the authenticated user.
+        /// </remarks>
+        /// <response code="200">Returns the requested client</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="404">If the client is not found</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<Client>> GetClient(Guid id)
         {
             var userId = GetCurrentUserId();
-            
-            // Retrieve the client by ID and ensure it belongs to the current user
             var client = await _context.Clients
                 .Where(c => c.Id == id && c.UserId == userId)
                 .FirstOrDefaultAsync();
@@ -76,20 +84,29 @@ namespace tradetrackr.api.Controllers
         /// <summary>
         /// Updates an existing client for the logged in user.
         /// </summary>
-        /// <returns></returns>
-        // PUT: api/Clients/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <param name="id">The ID of the client to update.</param>
+        /// <param name="client">The updated client object.</param>
+        /// <remarks>
+        /// Updates the specified client if it belongs to the authenticated user.
+        /// </remarks>
+        /// <response code="204">Client updated successfully</response>
+        /// <response code="400">If the request is invalid</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="404">If the client is not found</response>
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateClient(Guid id, Client client)
         {
             var userId = GetCurrentUserId();
-            
+
             if (id != client.Id)
             {
                 return BadRequest();
             }
-            
-            // Ensure the client belongs to the current user
+
             var existingClient = await _context.Clients
                 .Where(c => c.Id == id && c.UserId == userId)
                 .FirstOrDefaultAsync();
@@ -99,7 +116,6 @@ namespace tradetrackr.api.Controllers
                 return NotFound();
             }
 
-            // Only update the fields that are allowed to be changed
             existingClient.Name = client.Name;
             existingClient.Email = client.Email;
             existingClient.Phone = client.Phone;
@@ -127,13 +143,20 @@ namespace tradetrackr.api.Controllers
         /// <summary>
         /// Creates a new client for the logged in user.
         /// </summary>
-        /// <returns></returns>
-        // POST: api/Clients
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <param name="client">The client object to create.</param>
+        /// <remarks>
+        /// Adds a new client associated with the authenticated user.
+        /// </remarks>
+        /// <response code="201">Client created successfully</response>
+        /// <response code="400">If the request is invalid</response>
+        /// <response code="401">If the user is not authenticated</response>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> CreateClient([FromBody] Client client)
         {
-            client.UserId = GetCurrentUserId(); 
+            client.UserId = GetCurrentUserId();
             _context.Clients.Add(client);
             await _context.SaveChangesAsync();
 
@@ -143,9 +166,17 @@ namespace tradetrackr.api.Controllers
         /// <summary>
         /// Deletes a specific client by ID for the logged in user.
         /// </summary>
-        /// <returns></returns>
-        // DELETE: api/Clients/5
+        /// <param name="id">The ID of the client to delete.</param>
+        /// <remarks>
+        /// Deletes the client with the specified ID if it belongs to the authenticated user.
+        /// </remarks>
+        /// <response code="204">Client deleted successfully</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="404">If the client is not found</response>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteClient(Guid id)
         {
             var userId = GetCurrentUserId();
@@ -153,7 +184,6 @@ namespace tradetrackr.api.Controllers
             {
                 return Unauthorized();
             }
-            // Ensure the client belongs to the current user
             var client = await _context.Clients
                 .Where(c => c.Id == id && c.UserId == userId)
                 .FirstOrDefaultAsync();
