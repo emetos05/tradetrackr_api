@@ -55,16 +55,38 @@ namespace tradetrackr.api.Migrations
 
             modelBuilder.Entity("tradetrackr.api.Models.Invoice", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("uuid");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("DueDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("IssueDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("JobId");
 
                     b.ToTable("Invoices");
                 });
@@ -95,6 +117,10 @@ namespace tradetrackr.api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ClientId");
@@ -102,15 +128,46 @@ namespace tradetrackr.api.Migrations
                     b.ToTable("Jobs");
                 });
 
+            modelBuilder.Entity("tradetrackr.api.Models.Invoice", b =>
+                {
+                    b.HasOne("tradetrackr.api.Models.Client", "Client")
+                        .WithMany("Invoices")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("tradetrackr.api.Models.Job", "Job")
+                        .WithMany("Invoices")
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("Job");
+                });
+
             modelBuilder.Entity("tradetrackr.api.Models.Job", b =>
                 {
                     b.HasOne("tradetrackr.api.Models.Client", "Client")
-                        .WithMany()
+                        .WithMany("Jobs")
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("tradetrackr.api.Models.Client", b =>
+                {
+                    b.Navigation("Invoices");
+
+                    b.Navigation("Jobs");
+                });
+
+            modelBuilder.Entity("tradetrackr.api.Models.Job", b =>
+                {
+                    b.Navigation("Invoices");
                 });
 #pragma warning restore 612, 618
         }

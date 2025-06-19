@@ -6,13 +6,17 @@ namespace tradetrackr.api.Models
     {
         [Key]
         public Guid Id { get; set; }
+        [Required]
         public string UserId { get; set; } // From Auth0
         [Required]
         public string Name { get; set; }
+        [EmailAddress]
         public string Email { get; set; }
+        [Phone]
         public string Phone { get; set; }
         public string Address { get; set; }
-
-        //public ICollection<Job> Jobs { get; set; } = new List<Job>();
+        // Navigation property
+        public ICollection<Job> Jobs { get; set; }
+        public ICollection<Invoice> Invoices { get; set; }
     }
 }
