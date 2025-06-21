@@ -6,11 +6,8 @@ namespace tradetrackr.api.Models
     {
         [Key]
         public Guid Id { get; set; }
-        [Required]
         public Guid JobId { get; set; }
-        [Required]
         public Guid ClientId { get; set; }
-        [Required]
         public string UserId { get; set; } // From Auth0
         [Required]
         public DateTime IssueDate { get; set; }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using tradetrackr.api.Data;
 using tradetrackr.api.Models;
+using tradetrackr.api.Dto;
 
 namespace tradetrackr.api.Controllers
 {
@@ -35,14 +36,23 @@ namespace tradetrackr.api.Controllers
         /// <response code="200">Returns the list of jobs</response>
         /// <response code="401">Unauthorized</response>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Job>>> GetJobs()
+        public async Task<ActionResult<IEnumerable<JobDto>>> GetJobs()
         {
             var userId = GetCurrentUserId();
-            // Only return jobs where the job's client belongs to the current user
-            return await _context.Jobs
+            var jobs = await _context.Jobs
                 .Include(j => j.Client)
                 .Where(j => j.Client.UserId == userId)
+                .Select(j => new JobDto
+                {
+                    ClientId = j.ClientId,
+                    Title = j.Title,
+                    Description = j.Description,
+                    HourlyRate = j.HourlyRate,
+                    HoursWorked = j.HoursWorked,
+                    MaterialCost = j.MaterialCost
+                })
                 .ToListAsync();
+            return jobs;
         }
 
         /// <summary>
@@ -56,12 +66,21 @@ namespace tradetrackr.api.Controllers
         /// <response code="404">Job not found</response>
         /// <response code="401">Unauthorized</response>
         [HttpGet("{id}")]
-        public async Task<ActionResult<Job>> GetJob(Guid id)
+        public async Task<ActionResult<JobDto>> GetJob(Guid id)
         {
             var userId = GetCurrentUserId();
             var job = await _context.Jobs
                 .Include(j => j.Client)
                 .Where(j => j.Id == id && j.Client.UserId == userId)
+                .Select(j => new JobDto
+                {
+                    ClientId = j.ClientId,
+                    Title = j.Title,
+                    Description = j.Description,
+                    HourlyRate = j.HourlyRate,
+                    HoursWorked = j.HoursWorked,
+                    MaterialCost = j.MaterialCost
+                })
                 .FirstOrDefaultAsync();
 
             if (job == null)
@@ -76,7 +95,7 @@ namespace tradetrackr.api.Controllers
         /// Updates an existing job for the logged in user.
         /// </summary>
         /// <param name="id">The ID of the job to update.</param>
-        /// <param name="job">The updated job object.</param>
+        /// <param name="jobDto">The updated job object.</param>
         /// <remarks>
         /// Only updates the job if it exists and belongs to the current user.
         /// </remarks>
@@ -85,15 +104,9 @@ namespace tradetrackr.api.Controllers
         /// <response code="404">Job not found</response>
         /// <response code="401">Unauthorized</response>
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateJob(Guid id, Job job)
+        public async Task<IActionResult> UpdateJob(Guid id, [FromBody] JobDto jobDto)
         {
             var userId = GetCurrentUserId();
-            if (id != job.Id)
-            {
-                return BadRequest();
-            }
-
-            // Ensure the job belongs to the current user
             var existingJob = await _context.Jobs
                 .Include(j => j.Client)
                 .Where(j => j.Id == id && j.Client.UserId == userId)
@@ -104,13 +117,12 @@ namespace tradetrackr.api.Controllers
                 return NotFound();
             }
 
-            // Only update the fields that are allowed to be changed
-            existingJob.Title = job.Title;
-            existingJob.Description = job.Description;
-            existingJob.HourlyRate = job.HourlyRate;
-            existingJob.HoursWorked = job.HoursWorked;
-            existingJob.MaterialCost = job.MaterialCost;
-            existingJob.ClientId = job.ClientId;
+            existingJob.ClientId = jobDto.ClientId;
+            existingJob.Title = jobDto.Title;
+            existingJob.Description = jobDto.Description;
+            existingJob.HourlyRate = jobDto.HourlyRate;
+            existingJob.HoursWorked = jobDto.HoursWorked;
+            existingJob.MaterialCost = jobDto.MaterialCost;
 
             try
             {
@@ -134,7 +146,7 @@ namespace tradetrackr.api.Controllers
         /// <summary>
         /// Creates a new job for the logged in user.
         /// </summary>
-        /// <param name="job">The job object to create.</param>
+        /// <param name="jobDto">The job object to create.</param>
         /// <remarks>
         /// The client associated with the job must belong to the current user.
         /// </remarks>
@@ -142,21 +154,30 @@ namespace tradetrackr.api.Controllers
         /// <response code="400">Client does not exist or does not belong to the current user</response>
         /// <response code="401">Unauthorized</response>
         [HttpPost]
-        public async Task<ActionResult<Job>> CreateJob(Job job)
+        public async Task<ActionResult<JobDto>> CreateJob([FromBody] JobDto jobDto)
         {
             var userId = GetCurrentUserId();
-            // Ensure the client belongs to the current user
             var client = await _context.Clients
-                .Where(c => c.Id == job.ClientId && c.UserId == userId)
+                .Where(c => c.Id == jobDto.ClientId && c.UserId == userId)
                 .FirstOrDefaultAsync();
             if (client == null)
             {
                 return BadRequest("Client does not exist or does not belong to the current user.");
             }
+            var job = new Job
+            {
+                ClientId = jobDto.ClientId,
+                Title = jobDto.Title,
+                Description = jobDto.Description,
+                HourlyRate = jobDto.HourlyRate,
+                HoursWorked = jobDto.HoursWorked,
+                MaterialCost = jobDto.MaterialCost,
+                UserId = userId
+            };
             _context.Jobs.Add(job);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetJob", new { id = job.Id }, job);
+            return CreatedAtAction("GetJob", new { id = job.Id }, jobDto);
         }
 
         /// <summary>

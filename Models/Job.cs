@@ -6,9 +6,7 @@ namespace tradetrackr.api.Models
     {
         [Key]
         public Guid Id { get; set; }
-        [Required]
         public Guid ClientId { get; set; }
-        [Required]
         public string UserId { get; set; } // From Auth0
         [Required]
         public string Title { get; set; }
@@ -19,6 +17,6 @@ namespace tradetrackr.api.Models
         public float HoursWorked { get; set; }
         public decimal MaterialCost { get; set; }
         public Client Client { get; set; }
-        public ICollection<Invoice> Invoices { get; set; }
+        public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
     }
 }

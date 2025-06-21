@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using tradetrackr.api.Data;
 using tradetrackr.api.Models;
+using tradetrackr.api.Dto;
 
 namespace tradetrackr.api.Controllers
 {
@@ -28,9 +29,12 @@ namespace tradetrackr.api.Controllers
         private string GetCurrentUserId()
         {
             // Try to get the client_id claim (for M2M)
-            var clientId = HttpContext.User.FindFirst("client_id")?.Value;
-            if (!string.IsNullOrEmpty(clientId))
-                return clientId;
+            var userId = HttpContext.User.FindFirst("client_id")?.Value;
+
+            userId = "1234"; // For testing
+
+            if (!string.IsNullOrEmpty(userId))
+                return userId;
             // Fallback to sub (for user-based tokens)
             return HttpContext.User.FindFirst("sub")?.Value;
         }
@@ -46,10 +50,19 @@ namespace tradetrackr.api.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<IEnumerable<Client>>> GetClients()
+        public async Task<ActionResult<IEnumerable<ClientDto>>> GetClients()
         {
             var userId = GetCurrentUserId();
-            return await _context.Clients.Where(c => c.UserId == userId).ToListAsync();
+            var clients = await _context.Clients.Where(c => c.UserId == userId)
+                .Select(c => new ClientDto
+                {
+                    Name = c.Name,
+                    Email = c.Email,
+                    Phone = c.Phone,
+                    Address = c.Address
+                })
+                .ToListAsync();
+            return clients;
         }
 
         /// <summary>
@@ -66,11 +79,18 @@ namespace tradetrackr.api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Client>> GetClient(Guid id)
+        public async Task<ActionResult<ClientDto>> GetClient(Guid id)
         {
             var userId = GetCurrentUserId();
             var client = await _context.Clients
                 .Where(c => c.Id == id && c.UserId == userId)
+                .Select(c => new ClientDto
+                {
+                    Name = c.Name,
+                    Email = c.Email,
+                    Phone = c.Phone,
+                    Address = c.Address
+                })
                 .FirstOrDefaultAsync();
 
             if (client == null)
@@ -85,7 +105,7 @@ namespace tradetrackr.api.Controllers
         /// Updates an existing client for the logged in user.
         /// </summary>
         /// <param name="id">The ID of the client to update.</param>
-        /// <param name="client">The updated client object.</param>
+        /// <param name="clientDto">The updated client object.</param>
         /// <remarks>
         /// Updates the specified client if it belongs to the authenticated user.
         /// </remarks>
@@ -98,14 +118,9 @@ namespace tradetrackr.api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateClient(Guid id, Client client)
+        public async Task<IActionResult> UpdateClient(Guid id, [FromBody] ClientDto clientDto)
         {
             var userId = GetCurrentUserId();
-
-            if (id != client.Id)
-            {
-                return BadRequest();
-            }
 
             var existingClient = await _context.Clients
                 .Where(c => c.Id == id && c.UserId == userId)
@@ -116,10 +131,10 @@ namespace tradetrackr.api.Controllers
                 return NotFound();
             }
 
-            existingClient.Name = client.Name;
-            existingClient.Email = client.Email;
-            existingClient.Phone = client.Phone;
-            existingClient.Address = client.Address;
+            existingClient.Name = clientDto.Name;
+            existingClient.Email = clientDto.Email;
+            existingClient.Phone = clientDto.Phone;
+            existingClient.Address = clientDto.Address;
 
             try
             {
@@ -143,7 +158,7 @@ namespace tradetrackr.api.Controllers
         /// <summary>
         /// Creates a new client for the logged in user.
         /// </summary>
-        /// <param name="client">The client object to create.</param>
+        /// <param name="clientDto">The client object to create.</param>
         /// <remarks>
         /// Adds a new client associated with the authenticated user.
         /// </remarks>
@@ -154,13 +169,20 @@ namespace tradetrackr.api.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> CreateClient([FromBody] Client client)
+        public async Task<IActionResult> CreateClient([FromBody] ClientDto clientDto)
         {
-            client.UserId = GetCurrentUserId();
+            var client = new Client
+            {
+                Name = clientDto.Name,
+                Email = clientDto.Email,
+                Phone = clientDto.Phone,
+                Address = clientDto.Address,
+                UserId = GetCurrentUserId()
+            };
             _context.Clients.Add(client);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetClient), new { id = client.Id }, client);
+            return CreatedAtAction(nameof(GetClient), new { id = client.Id }, clientDto);
         }
 
         /// <summary>

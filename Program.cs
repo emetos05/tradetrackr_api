@@ -14,10 +14,13 @@ builder.Services.AddDbContext<TradeTrackrDbContext>(options =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllOriginsPolicy",
-        builder => builder.AllowAnyOrigin()
-                          .AllowAnyMethod()
-                          .AllowAnyHeader());
+    options.AddPolicy("AllowNextJsFrontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:3000") // or your Vercel/Prod domain
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
 });
 
 builder.Services.AddControllers();
@@ -90,7 +93,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAllOriginsPolicy");
+app.UseCors("AllowNextJsFrontend");
 
 app.UseHttpsRedirection();  
 
