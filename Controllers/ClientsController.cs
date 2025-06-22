@@ -25,19 +25,7 @@ namespace tradetrackr.api.Controllers
             _context = context;
         }
 
-        // For M2M (machine-to-machine) Auth0, use "client_id" claim instead of "sub"
-        private string GetCurrentUserId()
-        {
-            // Try to get the client_id claim (for M2M)
-            var userId = HttpContext.User.FindFirst("client_id")?.Value;
-
-            userId = "1234"; // For testing
-
-            if (!string.IsNullOrEmpty(userId))
-                return userId;
-            // Fallback to sub (for user-based tokens)
-            return HttpContext.User.FindFirst("sub")?.Value;
-        }
+        private string GetCurrentUserId() => HttpContext?.User?.FindFirst("sub")?.Value;
 
         /// <summary>
         /// Retrieves all clients for the logged in user.

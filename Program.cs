@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using tradetrackr.api.Data;
 
@@ -22,6 +24,7 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
+
 
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen(options =>
@@ -72,14 +75,17 @@ builder.Services.AddAuthentication(options =>
         options.Authority = "https://tradetrackr.ca.auth0.com/";
         options.Audience = "https://localhost:44395/api";
         //options.Audience = "https://tradetrackr/api";
-        //options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-        //{
-        //    ValidateIssuer = true,
-        //    ValidIssuer = "https://tradetrackr.ca.auth0.com/",
-        //    ValidateAudience = true,
-        //    ValidAudience = "https://tradetrackr/api",
-        //    ValidateLifetime = true
-        //};
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = "https://tradetrackr.ca.auth0.com/",
+            ValidateAudience = true,
+            //ValidAudience = "https://tradetrackr/api",
+            ValidAudience = "https://localhost:44395/api",
+            ValidateLifetime = true
+        };
+
+        options.MapInboundClaims = false;
     });
 
 builder.Services.AddAuthorization();
