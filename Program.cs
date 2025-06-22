@@ -95,7 +95,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowNextJsFrontend");
 
-app.UseHttpsRedirection();  
+app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
@@ -106,4 +106,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-

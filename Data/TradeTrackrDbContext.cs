@@ -30,5 +30,5 @@ namespace tradetrackr.api.Data
                 .HasForeignKey(i => i.JobId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
-    }    
+    }
 }
