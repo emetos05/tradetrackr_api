@@ -1,36 +1,28 @@
-C# Coding Style
-===============
+Copilot instructions
 
-The general rule we follow is "use Visual Studio defaults".
+* Utilize modern language features and C# versions whenever possible.
+* Avoid outdated language constructs.
+* Only catch exceptions that can be properly handled; avoid catching general exceptions. For example, sample code shouldn't catch the System.Exception type without an exception filter.
+* Use specific exception types to provide meaningful error messages.
+* Use LINQ queries and methods for collection manipulation to improve code readability.
+* Use asynchronous programming with async and await for I/O-bound operations.
+* Be cautious of deadlocks and use Task.ConfigureAwait when appropriate.
+* Use the language keywords for data types instead of the runtime types. For example, use string instead of System.String, or int instead of System.Int32. This recommendation includes using the types nint and nuint.
+* Use int rather than unsigned types. The use of int is common throughout C#, and it's easier to interact with other libraries when you use int. Exceptions are for documentation specific to unsigned data types.
+* Use var only when a reader can infer the type from the expression. Readers view our samples on the docs platform. They don't have hover or tool tips that display the type of variables.
+* Write code with clarity and simplicity in mind.
+* Avoid overly complex and convoluted code logic.
 
-1. We use [Allman style](http://en.wikipedia.org/wiki/Indent_style#Allman_style) braces, where each brace begins on a new line. A single line statement block can go without braces but the block must be properly indented on its own line and must not be nested in other statement blocks that use braces (See rule 18 for more details). One exception is that a `using` statement is permitted to be nested within another `using` statement by starting on the following line at the same indentation level, even if the nested `using` contains a controlled block.
-2. We use four spaces of indentation (no tabs).
-3. We use `_camelCase` for internal and private fields and use `readonly` where possible. Prefix internal and private instance fields with `_`, static fields with `s_` and thread static fields with `t_`. When used on static fields, `readonly` should come after `static` (e.g. `static readonly` not `readonly static`).  Public fields should be used sparingly and should use PascalCasing with no prefix when used.
-4. We avoid `this.` unless absolutely necessary.
-5. We always specify the visibility, even if it's the default (e.g.
-   `private string _foo` not `string _foo`). Visibility should be the first modifier (e.g.
-   `public abstract` not `abstract public`).
-6. Namespace imports should be specified at the top of the file, *outside* of
-   `namespace` declarations, and should be sorted alphabetically, with the exception of `System.*` namespaces, which are to be placed on top of all others.
-7. Avoid more than one empty line at any time. For example, do not have two
-   blank lines between members of a type.
-8. Avoid spurious free spaces.
-   For example avoid `if (someVar == 0)...`, where the dots mark the spurious free spaces.
-   Consider enabling "View White Space (Ctrl+R, Ctrl+W)" or "Edit -> Advanced -> View White Space" if using Visual Studio to aid detection.
-9. If a file happens to differ in style from these guidelines (e.g. private members are named `m_member`
-   rather than `_member`), the existing style in that file takes precedence.
-10. We only permit ( not enforce ) `var` when the type is explicitly named on the right-hand side, typically due to either `new` or an explicit cast, e.g. `var stream = new FileStream(...)` not `var stream = OpenStandardInput()`.
-    - Similarly, target-typed `new()` can only be used when the type is explicitly named on the left-hand side, in a variable definition statement or a field definition statement. e.g. `FileStream stream = new(...);`, but not `stream = new(...);` (where the type was specified on a previous line).
-11. We use language keywords instead of BCL types (e.g. `int, string, float` instead of `Int32, String, Single`, etc) for both type references as well as method calls (e.g. `int.Parse` instead of `Int32.Parse`). See issue [#13976](https://github.com/dotnet/runtime/issues/13976) for examples.
-12. We use PascalCasing to name all our constant local variables and fields. The only exception is for interop code where the constant value should exactly match the name and value of the code you are calling via interop.
-13. We use PascalCasing for all method names, including local functions.
-14. We use ```nameof(...)``` instead of ```"..."``` whenever possible and relevant.
-15. Fields should be specified at the top within type declarations.
-16. When including non-ASCII characters in the source code use Unicode escape sequences (\uXXXX) instead of literal characters. Literal non-ASCII characters occasionally get garbled by a tool or editor.
-17. When using labels (for goto), indent the label one less than the current indentation.
-18. When using a single-statement if, we follow these conventions:
-    - Never use single-line form (for example: `if (source == null) throw new ArgumentNullException("source");`)
-    - Using braces is always accepted, and required if any block of an `if`/`else if`/.../`else` compound statement uses braces or if a single statement body spans multiple lines.
-    - Braces may be omitted only if the body of *every* block associated with an `if`/`else if`/.../`else` compound statement is placed on a single line.
-19. Make all internal and private types static or sealed unless derivation from them is required.  As with any implementation detail, they can be changed if/when derivation is required in the future.
-20. Primary constructor parameters should be named like parameters, using `camelCase` and not prefixed with `_`. For example, `public ObservableLinkedList(IEnumerable<T> items)` instead of `public ObservableLinkedList(IEnumerable<T> _items)`. However, if the type is not sufficiently small such that it is easy to see where the parameters are used, then the primary constructor parameters should be assigned to fields prefixed with `_` (e.g. `private readonly IEnumerable<T> _items = item;`).
+* Use string interpolation to concatenate short strings, as shown in the following code.
+* To append strings in loops, especially when you're working with large amounts of text, use a System.Text.StringBuilder object.
+* Use the `using` statement to ensure proper disposal of resources, especially for types that implement IDisposable.
+* Prefer raw string literals to escape sequences or verbatim strings.
+* Use the expression-based string interpolation rather than positional string interpolation.
+
+* Use Pascal case for primary constructor parameters on record types.
+* Use camel case for primary constructor parameters on class and struct types.
+* Use required properties instead of constructors to force initialization of property values.
+* Use collection expressions to initialize all collection types.
+
+* Use a try-catch statement for most exception handling.
+* Simplify your code by using the C# using statement. If you have a try-finally statement in which the only code in the finally block is a call to the Dispose method, use a using statement instead.
