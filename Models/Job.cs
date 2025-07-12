@@ -11,6 +11,9 @@ namespace tradetrackr.api.Models
         [Required]
         public string Title { get; set; }
         public string Description { get; set; }
+        public string Status { get; set; } = JobStatus.Pending.ToString(); // Default status
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? CompletedAt { get; set; } // Nullable for ongoing jobs
         [Required]
         public decimal HourlyRate { get; set; }
         [Required]
@@ -18,5 +21,14 @@ namespace tradetrackr.api.Models
         public decimal MaterialCost { get; set; }
         public Client Client { get; set; }
         public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+    }
+
+    public enum JobStatus
+    {
+        Pending,
+        InProgress,
+        Completed,
+        Cancelled,
+        OnHold
     }
 }

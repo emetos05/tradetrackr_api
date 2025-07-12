@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -42,16 +43,7 @@ namespace tradetrackr.api.Controllers
             var jobs = await _context.Jobs
                 .Include(j => j.Client)
                 .Where(j => j.Client.UserId == userId)
-                .Select(j => new JobDto
-                {
-                    Id = j.Id,
-                    ClientId = j.ClientId,
-                    Title = j.Title,
-                    Description = j.Description,
-                    HourlyRate = j.HourlyRate,
-                    HoursWorked = j.HoursWorked,
-                    MaterialCost = j.MaterialCost
-                })
+                .ProjectToType<JobDto>()
                 .ToListAsync();
             return jobs;
         }
@@ -73,16 +65,7 @@ namespace tradetrackr.api.Controllers
             var job = await _context.Jobs
                 .Include(j => j.Client)
                 .Where(j => j.Id == id && j.Client.UserId == userId)
-                .Select(j => new JobDto
-                {
-                    Id = j.Id,
-                    ClientId = j.ClientId,
-                    Title = j.Title,
-                    Description = j.Description,
-                    HourlyRate = j.HourlyRate,
-                    HoursWorked = j.HoursWorked,
-                    MaterialCost = j.MaterialCost
-                })
+                .ProjectToType<JobDto>()
                 .FirstOrDefaultAsync();
 
             if (job == null)

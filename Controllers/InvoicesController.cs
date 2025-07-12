@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -40,16 +41,7 @@ namespace tradetrackr.api.Controllers
             var userId = GetCurrentUserId();
             var invoices = await _context.Invoices
                 .Where(i => i.UserId == userId)
-                .Select(i => new InvoiceDto
-                {
-                    Id = i.Id,
-                    JobId = i.JobId,
-                    ClientId = i.ClientId,
-                    IssueDate = i.IssueDate,
-                    DueDate = i.DueDate,
-                    Amount = i.Amount,
-                    Status = i.Status
-                })
+                .ProjectToType<InvoiceDto>()
                 .ToListAsync();
             return invoices;
         }
@@ -69,16 +61,7 @@ namespace tradetrackr.api.Controllers
             var userId = GetCurrentUserId();
             var invoice = await _context.Invoices
                 .Where(i => i.Id == id && i.UserId == userId)
-                .Select(i => new InvoiceDto
-                {
-                    Id = i.Id,
-                    JobId = i.JobId,
-                    ClientId = i.ClientId,
-                    IssueDate = i.IssueDate,
-                    DueDate = i.DueDate,
-                    Amount = i.Amount,
-                    Status = i.Status
-                })
+                .ProjectToType<InvoiceDto>()
                 .FirstOrDefaultAsync();
 
             if (invoice == null)
