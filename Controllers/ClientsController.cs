@@ -43,14 +43,15 @@ namespace tradetrackr.api.Controllers
             var userId = GetCurrentUserId();
             var clients = await _context.Clients.Where(c => c.UserId == userId)
                 .Select(c => new ClientDto
-                {
+                {                    
+                    Id = c.Id,
                     Name = c.Name,
                     Email = c.Email,
                     Phone = c.Phone,
                     Address = c.Address
                 })
                 .ToListAsync();
-            return clients;
+            return Ok(clients);
         }
 
         /// <summary>
@@ -74,6 +75,7 @@ namespace tradetrackr.api.Controllers
                 .Where(c => c.Id == id && c.UserId == userId)
                 .Select(c => new ClientDto
                 {
+                    Id = c.Id,
                     Name = c.Name,
                     Email = c.Email,
                     Phone = c.Phone,

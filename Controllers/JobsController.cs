@@ -44,6 +44,7 @@ namespace tradetrackr.api.Controllers
                 .Where(j => j.Client.UserId == userId)
                 .Select(j => new JobDto
                 {
+                    Id = j.Id,
                     ClientId = j.ClientId,
                     Title = j.Title,
                     Description = j.Description,
@@ -74,6 +75,7 @@ namespace tradetrackr.api.Controllers
                 .Where(j => j.Id == id && j.Client.UserId == userId)
                 .Select(j => new JobDto
                 {
+                    Id = j.Id,
                     ClientId = j.ClientId,
                     Title = j.Title,
                     Description = j.Description,

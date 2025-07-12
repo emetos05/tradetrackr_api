@@ -42,6 +42,7 @@ namespace tradetrackr.api.Controllers
                 .Where(i => i.UserId == userId)
                 .Select(i => new InvoiceDto
                 {
+                    Id = i.Id,
                     JobId = i.JobId,
                     ClientId = i.ClientId,
                     IssueDate = i.IssueDate,
@@ -70,6 +71,7 @@ namespace tradetrackr.api.Controllers
                 .Where(i => i.Id == id && i.UserId == userId)
                 .Select(i => new InvoiceDto
                 {
+                    Id = i.Id,
                     JobId = i.JobId,
                     ClientId = i.ClientId,
                     IssueDate = i.IssueDate,

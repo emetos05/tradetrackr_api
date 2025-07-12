@@ -2,6 +2,7 @@ namespace tradetrackr.api.Dto
 {
     public class JobDto
     {
+        public Guid Id { get; set; }
         public Guid ClientId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }

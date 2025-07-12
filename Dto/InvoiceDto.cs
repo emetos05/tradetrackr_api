@@ -2,6 +2,7 @@ namespace tradetrackr.api.Dto
 {
     public class InvoiceDto
     {
+        public Guid Id { get; set; }
         public Guid JobId { get; set; }
         public Guid ClientId { get; set; }
         public DateTime IssueDate { get; set; }
