@@ -5,14 +5,18 @@ using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using tradetrackr.api.Data;
+using tradetrackr.api.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(builder.Configuration["TradetrackrDb:ConnectionStrings"]);
+dataSourceBuilder.MapEnum<JobStatus>();
+var dataSource = dataSourceBuilder.Build();
 
 builder.Services.AddDbContext<TradeTrackrDbContext>(options =>
-    options.UseNpgsql(builder.Configuration["TradetrackrDb:ConnectionStrings"]));
+    options.UseNpgsql(dataSource));
 
 builder.Services.AddCors(options =>
 {

@@ -45,7 +45,7 @@ namespace tradetrackr.api.Controllers
                 .Where(j => j.Client.UserId == userId)
                 .ProjectToType<JobDto>()
                 .ToListAsync();
-            return jobs;
+            return Ok(jobs);
         }
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace tradetrackr.api.Controllers
             existingJob.Title = jobDto.Title;
             existingJob.Description = jobDto.Description;
             existingJob.Status = jobDto.Status;
-            if (existingJob.Status == JobStatus.Completed.ToString() && !jobDto.CompletedAt.HasValue)
+            if (existingJob.Status == JobStatus.Completed && !jobDto.CompletedAt.HasValue)
             {
                 return BadRequest("Cannot set job status to Completed without a completion date.");
             }
@@ -116,13 +116,13 @@ namespace tradetrackr.api.Controllers
                 return BadRequest("CreatedAt cannot be in the future.");
             }
             existingJob.CompletedAt = jobDto.CompletedAt;
-            if (existingJob.CompletedAt.HasValue && existingJob.Status != JobStatus.Completed.ToString())
+            if (existingJob.CompletedAt.HasValue && existingJob.Status != JobStatus.Completed)
             {
-                existingJob.Status = JobStatus.Completed.ToString();
+                existingJob.Status = JobStatus.Completed;
             }
-            else if (!existingJob.CompletedAt.HasValue && existingJob.Status == JobStatus.Completed.ToString())
+            else if (!existingJob.CompletedAt.HasValue && existingJob.Status == JobStatus.Completed)
             {
-                existingJob.Status = JobStatus.InProgress.ToString();
+                existingJob.Status = JobStatus.InProgress;
             }
             existingJob.HourlyRate = jobDto.HourlyRate;
             existingJob.HoursWorked = jobDto.HoursWorked;
@@ -173,7 +173,7 @@ namespace tradetrackr.api.Controllers
                 ClientId = jobDto.ClientId,
                 Title = jobDto.Title,
                 Description = jobDto.Description,
-                Status = jobDto.Status ?? JobStatus.Pending.ToString(),
+                Status = jobDto.Status,
                 CreatedAt = jobDto.CreatedAt,
                 CompletedAt = jobDto.CompletedAt,
                 HourlyRate = jobDto.HourlyRate,

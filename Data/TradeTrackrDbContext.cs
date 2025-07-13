@@ -27,8 +27,10 @@ namespace tradetrackr.api.Data
             modelBuilder.Entity<Job>()
                 .HasMany(j => j.Invoices)
                 .WithOne(i => i.Job)
-                .HasForeignKey(i => i.JobId)
+                .HasForeignKey(i => i.JobId)                
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.HasPostgresEnum<JobStatus>();
         }
     }
 }

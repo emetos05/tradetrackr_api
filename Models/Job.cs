@@ -11,7 +11,7 @@ namespace tradetrackr.api.Models
         [Required]
         public string Title { get; set; }
         public string Description { get; set; }
-        public string Status { get; set; } = JobStatus.Pending.ToString(); // Default status
+        public JobStatus Status { get; set; } = JobStatus.NotStarted;  // Default status
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? CompletedAt { get; set; } // Nullable for ongoing jobs
         [Required]
@@ -25,7 +25,7 @@ namespace tradetrackr.api.Models
 
     public enum JobStatus
     {
-        Pending,
+        NotStarted,
         InProgress,
         Completed,
         Cancelled,
