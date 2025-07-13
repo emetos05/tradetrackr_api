@@ -75,7 +75,7 @@ namespace tradetrackr.api.Controllers
                 return NotFound();
             }
 
-            return client;
+            return Ok(client);
         }
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace tradetrackr.api.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok(existingClient.Adapt<ClientDto>());
         }
 
         /// <summary>

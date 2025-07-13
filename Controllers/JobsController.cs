@@ -73,7 +73,7 @@ namespace tradetrackr.api.Controllers
                 return NotFound();
             }
 
-            return job;
+            return Ok(job);
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace tradetrackr.api.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok(existingJob.Adapt<JobDto>());
         }
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace tradetrackr.api.Controllers
             _context.Jobs.Add(job);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetJob", new { id = job.Id }, jobDto);
+            return CreatedAtAction(nameof(GetJob), new { id = job.Id }, jobDto);
         }
 
         /// <summary>

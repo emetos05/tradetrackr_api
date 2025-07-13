@@ -69,7 +69,7 @@ namespace tradetrackr.api.Controllers
                 return NotFound();
             }
 
-            return invoice;
+            return Ok(invoice);
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace tradetrackr.api.Controllers
                     throw;
                 }
             }
-            return NoContent();
+            return Ok(existingInvoice.Adapt<InvoiceDto>());
         }
 
         /// <summary>
