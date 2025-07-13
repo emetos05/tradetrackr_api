@@ -105,6 +105,25 @@ namespace tradetrackr.api.Controllers
             existingJob.ClientId = jobDto.ClientId;
             existingJob.Title = jobDto.Title;
             existingJob.Description = jobDto.Description;
+            existingJob.Status = jobDto.Status;
+            if (existingJob.Status == JobStatus.Completed.ToString() && !jobDto.CompletedAt.HasValue)
+            {
+                return BadRequest("Cannot set job status to Completed without a completion date.");
+            }
+            existingJob.CreatedAt = jobDto.CreatedAt;
+            if (existingJob.CreatedAt > DateTime.UtcNow)
+            {
+                return BadRequest("CreatedAt cannot be in the future.");
+            }
+            existingJob.CompletedAt = jobDto.CompletedAt;
+            if (existingJob.CompletedAt.HasValue && existingJob.Status != JobStatus.Completed.ToString())
+            {
+                existingJob.Status = JobStatus.Completed.ToString();
+            }
+            else if (!existingJob.CompletedAt.HasValue && existingJob.Status == JobStatus.Completed.ToString())
+            {
+                existingJob.Status = JobStatus.InProgress.ToString();
+            }
             existingJob.HourlyRate = jobDto.HourlyRate;
             existingJob.HoursWorked = jobDto.HoursWorked;
             existingJob.MaterialCost = jobDto.MaterialCost;
@@ -154,6 +173,9 @@ namespace tradetrackr.api.Controllers
                 ClientId = jobDto.ClientId,
                 Title = jobDto.Title,
                 Description = jobDto.Description,
+                Status = jobDto.Status ?? JobStatus.Pending.ToString(),
+                CreatedAt = jobDto.CreatedAt,
+                CompletedAt = jobDto.CompletedAt,
                 HourlyRate = jobDto.HourlyRate,
                 HoursWorked = jobDto.HoursWorked,
                 MaterialCost = jobDto.MaterialCost,
