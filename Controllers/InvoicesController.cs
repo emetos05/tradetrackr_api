@@ -43,7 +43,7 @@ namespace tradetrackr.api.Controllers
                 .Where(i => i.UserId == userId)
                 .ProjectToType<InvoiceDto>()
                 .ToListAsync();
-            return invoices;
+            return Ok(invoices);
         }
 
         /// <summary>
@@ -101,6 +101,7 @@ namespace tradetrackr.api.Controllers
             existingInvoice.DueDate = invoiceDto.DueDate;
             existingInvoice.Amount = invoiceDto.Amount;
             existingInvoice.Status = invoiceDto.Status;
+
             try
             {
                 await _context.SaveChangesAsync();

@@ -31,6 +31,7 @@ namespace tradetrackr.api.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.HasPostgresEnum<JobStatus>();
+            modelBuilder.HasPostgresEnum<InvoiceStatus>();
         }
     }
 }

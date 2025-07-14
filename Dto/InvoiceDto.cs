@@ -1,3 +1,5 @@
+using tradetrackr.api.Models;
+
 namespace tradetrackr.api.Dto
 {
     public class InvoiceDto
@@ -8,6 +10,6 @@ namespace tradetrackr.api.Dto
         public DateTime IssueDate { get; set; }
         public DateTime DueDate { get; set; }
         public decimal Amount { get; set; }
-        public string Status { get; set; }
+        public InvoiceStatus Status { get; set; }
     }
 }

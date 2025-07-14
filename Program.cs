@@ -13,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(builder.Configuration["TradetrackrDb:ConnectionStrings"]);
 dataSourceBuilder.MapEnum<JobStatus>();
+dataSourceBuilder.MapEnum<InvoiceStatus>();
 var dataSource = dataSourceBuilder.Build();
 
 builder.Services.AddDbContext<TradeTrackrDbContext>(options =>

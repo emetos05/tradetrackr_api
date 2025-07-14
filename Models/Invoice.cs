@@ -16,8 +16,17 @@ namespace tradetrackr.api.Models
         [Required]
         public decimal Amount { get; set; }
         [Required]
-        public string Status { get; set; } // e.g., "Draft", "Sent", "Paid"
+        public InvoiceStatus Status { get; set; } = InvoiceStatus.Draft; // Default status
         public Job Job { get; set; }
         public Client Client { get; set; }
+    }
+
+    public enum InvoiceStatus
+    {
+        Draft,
+        Sent,
+        Paid,
+        Overdue,
+        Cancelled
     }
 }
