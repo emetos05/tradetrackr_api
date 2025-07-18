@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using tradetrackr.api.Data;
@@ -12,9 +13,11 @@ using tradetrackr.api.Models;
 namespace tradetrackr.api.Migrations
 {
     [DbContext(typeof(TradeTrackrDbContext))]
-    partial class TradeTrackrDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250717114701_AddClientCreatedDate")]
+    partial class AddClientCreatedDate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

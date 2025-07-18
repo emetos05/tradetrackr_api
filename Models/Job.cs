@@ -12,7 +12,7 @@ namespace tradetrackr.api.Models
         public string Title { get; set; }
         public string Description { get; set; }
         public JobStatus Status { get; set; } = JobStatus.NotStarted;  // Default status
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
         public DateTime? CompletedAt { get; set; } // Nullable for ongoing jobs
         [Required]
         public decimal HourlyRate { get; set; }

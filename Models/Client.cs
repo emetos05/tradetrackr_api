@@ -14,6 +14,7 @@ namespace tradetrackr.api.Models
         [Phone]
         public string Phone { get; set; }
         public string Address { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         // Navigation property
         public ICollection<Job> Jobs { get; set; } = new List<Job>();
         public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
