@@ -97,6 +97,10 @@ namespace tradetrackr.api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateClient(Guid id, [FromBody] ClientDto clientDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var userId = GetCurrentUserId();
 
             var existingClient = await _context.Clients
@@ -148,6 +152,10 @@ namespace tradetrackr.api.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> CreateClient([FromBody] ClientDto clientDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var client = new Client
             {
                 Name = clientDto.Name,

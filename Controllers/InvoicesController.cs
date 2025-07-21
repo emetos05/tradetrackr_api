@@ -89,6 +89,10 @@ namespace tradetrackr.api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateInvoice(Guid id, [FromBody] InvoiceDto invoiceDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var userId = GetCurrentUserId();
             var existingInvoice = await _context.Invoices.FirstOrDefaultAsync(i => i.Id == id && i.UserId == userId);
             if (existingInvoice == null)

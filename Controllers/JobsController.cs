@@ -91,6 +91,10 @@ namespace tradetrackr.api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateJob(Guid id, [FromBody] JobDto jobDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var userId = GetCurrentUserId();
             var existingJob = await _context.Jobs
                 .Include(j => j.Client)
@@ -160,6 +164,10 @@ namespace tradetrackr.api.Controllers
         [HttpPost]
         public async Task<ActionResult<JobDto>> CreateJob([FromBody] JobDto jobDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var userId = GetCurrentUserId();
             var client = await _context.Clients
                 .Where(c => c.Id == jobDto.ClientId && c.UserId == userId)
