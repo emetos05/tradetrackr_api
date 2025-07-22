@@ -28,3 +28,4 @@
 - Simplify your code by using the C# using statement. If you have a try-finally statement in which the only code in the finally block is a call to the Dispose method, use a using statement instead.
 - Always create an editable plan document to be used as part of context when working on a complex task.
 - Complete tasks in simple testable chunks
+- Terminal commands should be based on Windows OS environment (PowerShell)
