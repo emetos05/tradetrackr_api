@@ -9,9 +9,12 @@ using tradetrackr.api.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(builder.Configuration["TradetrackrDb:ConnectionStrings"]);
+// Configure database connection
+var connectionString = builder.Configuration["TradetrackrDb:ConnectionStrings"]
+    ?? builder.Configuration["DATABASE_URL"]
+    ?? throw new InvalidOperationException("Database connection string not found.");
+
+var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
 dataSourceBuilder.MapEnum<JobStatus>();
 dataSourceBuilder.MapEnum<InvoiceStatus>();
 var dataSource = dataSourceBuilder.Build();
@@ -19,17 +22,21 @@ var dataSource = dataSourceBuilder.Build();
 builder.Services.AddDbContext<TradeTrackrDbContext>(options =>
     options.UseNpgsql(dataSource));
 
+// Configure CORS with environment-specific origins
+var corsOrigins = builder.Configuration["CORS_ORIGINS"]?.Split(',') 
+    ?? ["http://localhost:3000"];
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowNextJsFrontend", policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .WithOrigins("http://localhost:3000") // or your Vercel/Prod domain
+            .WithOrigins(corsOrigins)
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
-
 
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen(options =>
@@ -67,8 +74,21 @@ builder.Services.AddSwaggerGen(options =>
     });
 
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFile));
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
 });
+
+// Configure Auth0 settings
+var auth0Domain = builder.Configuration["Auth0:Domain"] 
+    ?? builder.Configuration["AUTH0_DOMAIN"]
+    ?? throw new InvalidOperationException("Auth0 domain not configured.");
+
+var auth0Audience = builder.Configuration["Auth0:Audience"]
+    ?? builder.Configuration["AUTH0_AUDIENCE"]
+    ?? throw new InvalidOperationException("Auth0 audience not configured.");
 
 builder.Services.AddAuthentication(options =>
 {
@@ -77,16 +97,14 @@ builder.Services.AddAuthentication(options =>
 })
     .AddJwtBearer("Bearer", options =>
     {
-        options.Authority = "https://tradetrackr.ca.auth0.com/";
-        options.Audience = "https://localhost:44395/api";
-        //options.Audience = "https://tradetrackr/api";
+        options.Authority = auth0Domain;
+        options.Audience = auth0Audience;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = "https://tradetrackr.ca.auth0.com/",
+            ValidIssuer = auth0Domain,
             ValidateAudience = true,
-            //ValidAudience = "https://tradetrackr/api",
-            ValidAudience = "https://localhost:44395/api",
+            ValidAudience = auth0Audience,
             ValidateLifetime = true
         };
 
@@ -103,10 +121,24 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else
+{
+    // Enable Swagger in production for Render deployment
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "TradeTrackr API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
 
-app.UseCors("AllowNextJsFrontend");
+app.UseCors("AllowFrontend");
 
-app.UseHttpsRedirection();
+// Only use HTTPS redirection in production with proper certificates
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseStaticFiles();
 
@@ -115,5 +147,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Add health check endpoint
+app.MapGet("/health", () => "OK");
 
 app.Run();

@@ -1,0 +1,58 @@
+# Ignore git files and folders
+.git/
+.gitignore
+.github/
+
+# Ignore Visual Studio files
+.vs/
+*.user
+*.suo
+*.sln.docstates
+bin/
+obj/
+
+# Ignore test projects
+**/Tests/
+**/*Tests/
+**/*.Tests/
+**/TestResults/
+**/*test*/
+
+# Ignore documentation files
+README.md
+*.md
+docs/
+
+# Ignore development configuration files
+appsettings.Development.json
+appsettings.Local.json
+Properties/launchSettings.json
+
+# Ignore NuGet packages
+*.nupkg
+*.snupkg
+packages/
+
+# Ignore temporary files
+**/temp/
+**/tmp/
+**/.tmp/
+
+# Ignore IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore logs
+logs/
+*.log
+
+# Ignore environment files
+.env
+.env.*
+
+# Ignore Docker files to avoid copying them into the image
+Dockerfile*
+docker-compose*
+.dockerignore
