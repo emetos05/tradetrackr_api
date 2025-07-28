@@ -134,12 +134,6 @@ else
 
 app.UseCors("AllowFrontend");
 
-// Only use HTTPS redirection in production with proper certificates
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
-
 app.UseStaticFiles();
 
 app.UseAuthentication();
