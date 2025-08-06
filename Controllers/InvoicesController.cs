@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using tradetrackr.api.Data;
 using tradetrackr.api.Dto;
 using tradetrackr.api.Models;
+using tradetrackr.api.Services;
 
 namespace tradetrackr.api.Controllers
 {
@@ -20,10 +21,12 @@ namespace tradetrackr.api.Controllers
     public class InvoicesController : ControllerBase
     {
         private readonly TradeTrackrDbContext _context;
+        private readonly IInvoiceService _invoiceService;
 
-        public InvoicesController(TradeTrackrDbContext context)
+        public InvoicesController(TradeTrackrDbContext context, IInvoiceService invoiceService)
         {
             _context = context;
+            _invoiceService = invoiceService;
         }
 
         private string GetCurrentUserId() => HttpContext.User.FindFirst("sub")?.Value;
@@ -32,17 +35,19 @@ namespace tradetrackr.api.Controllers
         /// Retrieves all invoices for the logged in user.
         /// </summary>
         /// <remarks>
-        /// Returns a list of invoices including their associated client and job details.
+        /// Returns a list of invoices including their calculated properties like total amount and overdue status.
         /// </remarks>
         /// <response code="200">Returns the list of invoices</response>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<InvoiceDto>>> GetInvoices()
         {
             var userId = GetCurrentUserId();
-            var invoices = await _context.Invoices
-                .Where(i => i.UserId == userId)
-                .ProjectToType<InvoiceDto>()
-                .ToListAsync();
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var invoices = await _invoiceService.GetInvoicesAsync(userId);
             return Ok(invoices);
         }
 
@@ -51,7 +56,7 @@ namespace tradetrackr.api.Controllers
         /// </summary>
         /// <param name="id">The ID of the invoice to retrieve</param>
         /// <remarks>
-        /// Returns the invoice including its associated client and job details.
+        /// Returns the invoice including its calculated properties and associated data.
         /// </remarks>
         /// <response code="200">Returns the invoice</response>
         /// <response code="404">If the invoice is not found</response>
@@ -59,11 +64,12 @@ namespace tradetrackr.api.Controllers
         public async Task<ActionResult<InvoiceDto>> GetInvoice(Guid id)
         {
             var userId = GetCurrentUserId();
-            var invoice = await _context.Invoices
-                .Where(i => i.Id == id && i.UserId == userId)
-                .ProjectToType<InvoiceDto>()
-                .FirstOrDefaultAsync();
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
 
+            var invoice = await _invoiceService.GetInvoiceByIdAsync(id, userId);
             if (invoice == null)
             {
                 return NotFound();
@@ -73,94 +79,150 @@ namespace tradetrackr.api.Controllers
         }
 
         /// <summary>
-        /// Updates an existing invoice for the logged in user.
-        /// </summary>
-        /// <param name="id">The ID of the invoice to update</param>
-        /// <param name="invoiceDto">The updated invoice object</param>
-        /// <remarks>
-        /// Returns a 204 No Content response on success.
-        /// Returns a 400 Bad Request if the ID does not match the invoice ID.
-        /// Returns a 404 Not Found if the invoice does not exist.
-        /// </remarks>
-        /// <response code="204">Invoice updated successfully</response>
-        /// <response code="400">ID does not match invoice ID</response>
-        /// <response code="401">User is not authorized to update this invoice</response>
-        /// <response code="404">Invoice not found</response>
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateInvoice(Guid id, [FromBody] InvoiceDto invoiceDto)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            var userId = GetCurrentUserId();
-            var existingInvoice = await _context.Invoices.FirstOrDefaultAsync(i => i.Id == id && i.UserId == userId);
-            if (existingInvoice == null)
-            {
-                return NotFound();
-            }
-            existingInvoice.JobId = invoiceDto.JobId;
-            existingInvoice.ClientId = invoiceDto.ClientId;
-            existingInvoice.IssueDate = invoiceDto.IssueDate;
-            existingInvoice.DueDate = invoiceDto.DueDate;
-            existingInvoice.Amount = invoiceDto.Amount;
-            existingInvoice.Status = invoiceDto.Status;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!InvoiceExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return Ok(existingInvoice.Adapt<InvoiceDto>());
-        }
-
-        /// <summary>
         /// Creates a new invoice for the logged in user.
         /// </summary>
-        /// <param name="invoiceDto">The invoice object to create</param>
+        /// <param name="request">The invoice creation request</param>
         /// <remarks>
-        /// Returns the created invoice.
+        /// Creates a new invoice with automatic tax calculations and validation.
         /// Returns a 400 Bad Request if the model is invalid or if the job/client does not exist or does not belong to the user.
         /// </remarks>
         /// <response code="201">Invoice created successfully</response>
         /// <response code="400">Invalid model or job/client does not exist or belong to user</response>
         [HttpPost]
-        public async Task<ActionResult<InvoiceDto>> CreateInvoice([FromBody] InvoiceDto invoiceDto)
+        public async Task<ActionResult<InvoiceDto>> CreateInvoice([FromBody] CreateInvoiceRequest request)
         {
             var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var job = await _context.Jobs.FirstOrDefaultAsync(j => j.Id == invoiceDto.JobId && j.UserId == userId);
-            var client = await _context.Clients.FirstOrDefaultAsync(c => c.Id == invoiceDto.ClientId && c.UserId == userId);
-            if (job == null || client == null)
+
+            try
             {
-                return BadRequest("Job or Client does not exist or does not belong to the current user.");
+                var invoice = await _invoiceService.CreateInvoiceAsync(request, userId);
+                return CreatedAtAction(nameof(GetInvoice), new { id = invoice.Id }, invoice);
             }
-            var invoice = new Invoice
+            catch (ArgumentException ex)
             {
-                JobId = invoiceDto.JobId,
-                ClientId = invoiceDto.ClientId,
-                IssueDate = invoiceDto.IssueDate,
-                DueDate = invoiceDto.DueDate,
-                Amount = invoiceDto.Amount,
-                Status = invoiceDto.Status,
-                UserId = userId
-            };
-            _context.Invoices.Add(invoice);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetInvoice), new { id = invoice.Id }, invoiceDto);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Updates an existing invoice for the logged in user.
+        /// </summary>
+        /// <param name="id">The ID of the invoice to update</param>
+        /// <param name="request">The updated invoice data</param>
+        /// <remarks>
+        /// Updates the invoice with automatic tax recalculation and validation.
+        /// Returns a 400 Bad Request if the ID does not match the invoice ID.
+        /// Returns a 404 Not Found if the invoice does not exist.
+        /// </remarks>
+        /// <response code="200">Invoice updated successfully</response>
+        /// <response code="400">Invalid request data</response>
+        /// <response code="401">User is not authorized to update this invoice</response>
+        /// <response code="404">Invoice not found</response>
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateInvoice(Guid id, [FromBody] UpdateInvoiceRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var invoice = await _invoiceService.UpdateInvoiceAsync(id, request, userId);
+                return Ok(invoice);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Updates the status of an invoice.
+        /// </summary>
+        /// <param name="id">The ID of the invoice to update</param>
+        /// <param name="request">The status update request</param>
+        /// <remarks>
+        /// Updates only the status of the invoice. Automatically clears payment date if status is not Paid.
+        /// </remarks>
+        /// <response code="200">Invoice status updated successfully</response>
+        /// <response code="400">Invalid status value</response>
+        /// <response code="404">Invoice not found</response>
+        [HttpPut("{id}/status")]
+        public async Task<ActionResult<InvoiceDto>> UpdateInvoiceStatus(Guid id, [FromBody] UpdateInvoiceStatusRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var invoice = await _invoiceService.UpdateInvoiceStatusAsync(id, request, userId);
+                return Ok(invoice);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Records a payment for an invoice.
+        /// </summary>
+        /// <param name="id">The ID of the invoice to record payment for</param>
+        /// <param name="request">The payment details</param>
+        /// <remarks>
+        /// Records payment and automatically updates the invoice status to Paid.
+        /// Validates that the payment amount matches the invoice total.
+        /// </remarks>
+        /// <response code="200">Payment recorded successfully</response>
+        /// <response code="400">Invalid payment amount or date</response>
+        /// <response code="404">Invoice not found</response>
+        [HttpPost("{id}/payment")]
+        public async Task<ActionResult<InvoiceDto>> RecordPayment(Guid id, [FromBody] RecordPaymentRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var invoice = await _invoiceService.RecordPaymentAsync(id, request, userId);
+                return Ok(invoice);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         /// <summary>
@@ -177,19 +239,38 @@ namespace tradetrackr.api.Controllers
         public async Task<IActionResult> DeleteInvoice(Guid id)
         {
             var userId = GetCurrentUserId();
-            var invoice = await _context.Invoices.FirstOrDefaultAsync(i => i.Id == id && i.UserId == userId);
-            if (invoice == null)
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var success = await _invoiceService.DeleteInvoiceAsync(id, userId);
+            if (!success)
             {
                 return NotFound();
             }
-            _context.Invoices.Remove(invoice);
-            await _context.SaveChangesAsync();
+
             return NoContent();
         }
 
-        private bool InvoiceExists(Guid id)
+        /// <summary>
+        /// Generates a new invoice number for the user.
+        /// </summary>
+        /// <remarks>
+        /// Returns a formatted invoice number based on the current year and sequence.
+        /// </remarks>
+        /// <response code="200">Returns the generated invoice number</response>
+        [HttpGet("generate-number")]
+        public async Task<ActionResult<string>> GenerateInvoiceNumber()
         {
-            return _context.Invoices.Any(e => e.Id == id);
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var invoiceNumber = await _invoiceService.GenerateInvoiceNumberAsync(userId);
+            return Ok(new { InvoiceNumber = invoiceNumber });
         }
     }
 }
