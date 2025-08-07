@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using tradetrackr.api.Data;
 using tradetrackr.api.Models;
+using tradetrackr.api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,8 +23,12 @@ var dataSource = dataSourceBuilder.Build();
 builder.Services.AddDbContext<TradeTrackrDbContext>(options =>
     options.UseNpgsql(dataSource));
 
+// Register custom services
+builder.Services.AddScoped<ITaxCalculationService, TaxCalculationService>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+
 // Configure CORS with environment-specific origins
-var corsOrigins = builder.Configuration["CORS_ORIGINS"]?.Split(',') 
+var corsOrigins = builder.Configuration["CORS_ORIGINS"]?.Split(',')
     ?? ["http://localhost:3000"];
 
 builder.Services.AddCors(options =>
@@ -82,7 +87,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // Configure Auth0 settings
-var auth0Domain = builder.Configuration["Auth0:Domain"] 
+var auth0Domain = builder.Configuration["Auth0:Domain"]
     ?? builder.Configuration["AUTH0_DOMAIN"]
     ?? throw new InvalidOperationException("Auth0 domain not configured.");
 
