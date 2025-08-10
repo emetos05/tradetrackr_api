@@ -14,5 +14,6 @@ namespace tradetrackr.api.Services
         Task<bool> DeleteInvoiceAsync(Guid id, string userId);
         Task<string> GenerateInvoiceNumberAsync(string userId);
         Task<bool> ValidateDueDateAsync(DateTime dueDate);
+        Task<int> UpdateOverdueInvoicesAsync(string? userId = null);
     }
 }

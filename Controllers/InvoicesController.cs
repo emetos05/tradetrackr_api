@@ -272,5 +272,26 @@ namespace tradetrackr.api.Controllers
             var invoiceNumber = await _invoiceService.GenerateInvoiceNumberAsync(userId);
             return Ok(new { InvoiceNumber = invoiceNumber });
         }
+
+        /// <summary>
+        /// Manually updates the status of overdue invoices for the current user.
+        /// </summary>
+        /// <remarks>
+        /// This endpoint can be used to immediately update invoice statuses without waiting for the background service.
+        /// Returns the number of invoices that were updated to Overdue status.
+        /// </remarks>
+        /// <response code="200">Returns the number of invoices updated</response>
+        [HttpPost("update-overdue")]
+        public async Task<ActionResult<object>> UpdateOverdueInvoices()
+        {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var updatedCount = await _invoiceService.UpdateOverdueInvoicesAsync(userId);
+            return Ok(new { UpdatedCount = updatedCount, Message = $"{updatedCount} invoice(s) updated to Overdue status" });
+        }
     }
 }

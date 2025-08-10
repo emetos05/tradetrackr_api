@@ -27,6 +27,9 @@ builder.Services.AddDbContext<TradeTrackrDbContext>(options =>
 builder.Services.AddScoped<ITaxCalculationService, TaxCalculationService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 
+// Register background services
+builder.Services.AddHostedService<InvoiceStatusUpdateService>();
+
 // Configure CORS with environment-specific origins
 var corsOrigins = builder.Configuration["CORS_ORIGINS"]?.Split(',')
     ?? ["http://localhost:3000"];
