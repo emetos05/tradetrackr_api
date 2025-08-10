@@ -26,6 +26,7 @@ builder.Services.AddDbContext<TradeTrackrDbContext>(options =>
 // Register custom services
 builder.Services.AddScoped<ITaxCalculationService, TaxCalculationService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
 
 // Register background services
 builder.Services.AddHostedService<InvoiceStatusUpdateService>();
