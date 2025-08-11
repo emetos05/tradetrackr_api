@@ -44,10 +44,7 @@ namespace tradetrackr.api.Controllers
         /// <response code="200">Returns the search results</response>
         /// <response code="400">If the search request is invalid</response>
         /// <response code="401">If the user is not authenticated</response>
-        [HttpPost]
-        [ProducesResponseType(typeof(GlobalSearchResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpPost]        
         public async Task<ActionResult<GlobalSearchResponse>> Search([FromBody] GlobalSearchRequest request)
         {
             if (request == null)
