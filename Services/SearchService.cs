@@ -288,7 +288,7 @@ namespace tradetrackr.api.Services
             // Truncate if too long
             if (result.Length > 100)
             {
-                var firstMatch = result.IndexOf("**", StringComparison.OrdinalIgnoreCase);
+                var firstMatch = result.IndexOf("**");
                 if (firstMatch > 0)
                 {
                     var start = Math.Max(0, firstMatch - 30);
