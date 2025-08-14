@@ -52,6 +52,10 @@ Authorization: Bearer {token}
 
 ### Endpoints
 
+#### Search
+- `POST /api/search` – Global search across clients, jobs, and invoices
+- `GET /api/search` – Simple global search with query parameters
+
 #### Clients
 - `GET /api/clients` — List all clients for the authenticated user
 - `GET /api/clients/{id}` — Get a specific client

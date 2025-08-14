@@ -167,7 +167,15 @@ namespace tradetrackr.api.Services
             var invoice = await _context.Invoices
                 .FirstOrDefaultAsync(i => i.Id == id && i.UserId == userId);
 
-            return invoice == null ? null : MapToDto(invoice);
+            if (invoice == null)
+            {
+                return null;
+            }
+
+            // Check and update status if overdue
+            await CheckAndUpdateOverdueStatusAsync(invoice);
+
+            return MapToDto(invoice);
         }
 
         public async Task<IEnumerable<InvoiceDto>> GetInvoicesAsync(string userId)
@@ -176,6 +184,21 @@ namespace tradetrackr.api.Services
                 .Where(i => i.UserId == userId)
                 .OrderByDescending(i => i.IssueDate)
                 .ToListAsync();
+
+            // Check and update overdue statuses
+            var hasChanges = false;
+            foreach (var invoice in invoices)
+            {
+                if (await CheckAndUpdateOverdueStatusAsync(invoice))
+                {
+                    hasChanges = true;
+                }
+            }
+
+            if (hasChanges)
+            {
+                await _context.SaveChangesAsync();
+            }
 
             return invoices.Select(MapToDto);
         }
@@ -223,6 +246,50 @@ namespace tradetrackr.api.Services
         {
             // Due date should not be in the past (allow same day)
             return dueDate.Date >= DateTime.UtcNow.Date;
+        }
+
+        public async Task<int> UpdateOverdueInvoicesAsync(string? userId = null)
+        {
+            var currentDate = DateTime.UtcNow.Date;
+            var query = _context.Invoices
+                .Where(i => i.Status != InvoiceStatus.Paid && 
+                           i.Status != InvoiceStatus.Cancelled && 
+                           i.Status != InvoiceStatus.Overdue &&
+                           i.DueDate.Date < currentDate);
+
+            // If userId is provided, filter by user
+            if (!string.IsNullOrEmpty(userId))
+            {
+                query = query.Where(i => i.UserId == userId);
+            }
+
+            var overdueInvoices = await query.ToListAsync();
+
+            foreach (var invoice in overdueInvoices)
+            {
+                invoice.Status = InvoiceStatus.Overdue;
+            }
+
+            if (overdueInvoices.Any())
+            {
+                await _context.SaveChangesAsync();
+            }
+
+            return overdueInvoices.Count;
+        }
+
+        private async Task<bool> CheckAndUpdateOverdueStatusAsync(Invoice invoice)
+        {
+            // Only update if the invoice is not paid, not cancelled, not already overdue, and past due date
+            if (invoice.Status != InvoiceStatus.Paid && 
+                invoice.Status != InvoiceStatus.Cancelled && 
+                invoice.Status != InvoiceStatus.Overdue &&
+                invoice.DueDate.Date < DateTime.UtcNow.Date)
+            {
+                invoice.Status = InvoiceStatus.Overdue;
+                return true;
+            }
+            return false;
         }
 
         private InvoiceDto MapToDto(Invoice invoice)
